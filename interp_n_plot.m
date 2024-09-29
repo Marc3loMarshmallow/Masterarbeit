@@ -90,6 +90,23 @@ values.resolutionDisplacement = params.c/2/params.fs; %in m
 values.depthOffset = 0; %in m
 parameters.resolution = [0.5 0.5]*10^-4;
 [imageOut,mask, values] = scanconvert(double(env_disp), values, parameters);
-iw(imageOut)
+
+% Set accurate frame
+
+New_img=imresize(imageOut, (342/size(imageOut,1)));
+frame = zeros(158, size(New_img, 2));
+img_frame = cat(1, frame, New_img);
+frame = zeros(100, size(New_img, 2));
+img_frame = cat(1, img_frame, frame);
+frame = zeros(size(img_frame, 1), 58);
+img_frame = cat(2, frame, img_frame);
+img_frame = cat(2, img_frame, frame);
+
+% Speckle reduction filter
+
+if params.speckle == 1
+    img_frame = speckle(bild_mit_rand, [3 3], 2);
+
+iw(img_frame)
 
 
