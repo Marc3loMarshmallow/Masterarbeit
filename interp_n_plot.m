@@ -14,8 +14,7 @@ if params.noise == 1
     for i=1:params.no_lines
         %  Load the result
 
-        %cmd=['load ', new_dir, 'rf_ln', num2str(i), '.mat']
-        cmd=['load 226950_Series/Sim2_', num2str(t), '_', num2str(ind-1), '/rf_ln',num2str(i),'.mat']
+        cmd=['load ', new_dir, 'rf_ln', num2str(i), '.mat']
 
         eval(cmd)
 
@@ -106,6 +105,7 @@ img_frame = cat(2, img_frame, frame);
 
 if params.speckle == 1
     img_frame = speckle(bild_mit_rand, [3 3], 2);
+end
 
 iw(img_frame)
 
