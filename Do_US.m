@@ -14,6 +14,9 @@ t = 2;      % Timepoint of the valve closure (1-30)
 rot = 7;    % Rotation angle of TEE (1-17)
 
 input_nifti = ['226950-timeseries/226950-TorsoMask_Rot',num2str(7),'.nii.gz']
+% input_nifti = ['293182-timeseries/293182-TorsoMask_Rot',num2str(ind-1),'.nii.gz']
+% input_nifti = ['771083-timeseries-NoPM/771083-TorsoMask_Rot',num2str(ind-1),'.nii.gz']
+
 
 img.vol     = niftiread(input_nifti);   % Loading the data from the file
 
@@ -21,6 +24,8 @@ img.vol     = niftiread(input_nifti);   % Loading the data from the file
 
 img.vol     = img.vol(:, :, :, 1, t);   % 5 dim to 3 dim image
 img.vol     = img.vol(81:535, 206:547, 12:28);
+% img.vol     = img.vol(91:545, 206:547, 12:28);  % For valve 293182
+% img.vol     = img.vol(81:535, 206:547, 12:28);  % For valve 771083
 img.vol     = imrotate(img.vol, -90);
 
 %   Set the image properties
