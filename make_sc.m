@@ -14,7 +14,7 @@ z_size = img.mm_size(3) / 1000 ;
 
 dx=x_size/Nl;          %  Sampling interval in x direction [m]
 dz=z_size/Ml;          %  Sampling interval in z direction [m]
-dy=y_size/17;
+dy=y_size/17;          %  Sampling interval in y direction [m]
 theta = 35/180*pi;     %   Rotation of the scatterers [rad]
 theta = 0;
 z_start = 2/1000;
@@ -33,32 +33,66 @@ y = (y0-0.5)* y_size;
 
 amp = zeros(img.n_sc,1);
 
+% If you want to increase the number of scatters in the valve
+
+% [z1, x1, y1] = ind2sub(size(V(:,:,:)), find(V(:,:,:) == 107));
+% x1=x1/Nl;
+% z1=z1/Ml;
+% y1=y1/17;
+% numPixels = length(x1);
+% randomIndices = randperm(numPixels, 3000);
+% x0(1:3000) = x1(randomIndices);
+% z0(1:3000) = z1(randomIndices);
+% y0(1:3000) = y1(randomIndices);
+
 for i=1:17
     map = img.vol(:,:,i,:,:);
+    
+    mask = map;                     % create mask for reflections
+    mask=my_changem(mask, 1 , 0);
+
+    % Set intensities outside the cone to 0
+    
     for j=1:floor(Nl/2)
         for k=1:j
             map(floor(Nl/2)+1-j,k)=0;
             map(floor(Nl/2)+1-j,Nl+2-k)=0;
+            mask(floor(Nl/2)+1-j,k)=0;
+            mask(floor(Nl/2)+1-j,Nl+2-k)=0;
         end
     end
 
-    %Set intensities / gray values
+    % Create mask for reflections
 
-    map=my_changem(map, 67 , 106);
-    map=my_changem(map, 280 , 105);
-    map=my_changem(map, 20, 76);
+    mask=my_changem(mask, 0 , 74);
+    mask=my_changem(mask, 0 , 75);
+    mask=my_changem(mask, 0 , 76);
+    mask=my_changem(mask, 0 , 107);
+    mask(mask~=0)=1;
+    mask=logical(mask);
+
+    % Set intensities / gray values
+
+    map=my_changem(map, 100 , 106);
+    map=my_changem(map, 100 , 105);
+    map=my_changem(map, 0, 76);
     map=my_changem(map, 0 , 56);
-    map=my_changem(map, 180 , 74);
-    map=my_changem(map, 20 , 75);
-    map=my_changem(map, 280 , 107);
-    map=my_changem(map, 135 , 61);
-    map=my_changem(map, 135 , 73);
-    map=my_changem(map, 135 , 65);
-    map=my_changem(map, 135 , 59);
-    map=my_changem(map, 135 , 55);
+    map=my_changem(map, 200 , 74);
+    map=my_changem(map, 5 , 75);
+    map=my_changem(map, 210 , 107);     % set to 30 if scatters increased
+    map=my_changem(map, 100 , 61);
+    map=my_changem(map, 120 , 73);
+    map=my_changem(map, 100 , 65);
+    map=my_changem(map, 100 , 67);
+    map=my_changem(map, 40 , 59);
+    map=my_changem(map, 100 , 55);
+    map=my_changem(map, 100 , 57);        
+    map=my_changem(map, 100 , 83);          
+    map=my_changem(map, 100 , 81);          
+    map=my_changem(map, 120 , 84);
     map=double(map);
 
-    %Gradient and Impedance in axial direction
+    % Gradients and Impedance in axial direction
 
     kernel=[-1 0 1;-2 0 2;-1 0 1]/4;
     Gx = conv2(map,kernel, 'same');
@@ -72,12 +106,29 @@ for i=1:17
     unit_x=cos(gtheta);
 
     g=unit_x.*Gx+unit_z.*Gz;
-
+    g(:,1)=0;
+    g(1,:)=0;
+    g(:,end)=0;
+    g(end,:)=0;
     edges=abs(g);
 
-    edge_kid = imdilate(edges, strel('disk',2));    % Edge thickness
+    Gx = conv2(mask,kernel, 'same');
+    Gz = conv2(mask,kernel', 'same');
+    g=unit_x.*Gx+unit_z.*Gz;
+    g(:,1)=0;
+    g(1,:)=0;
+    g(:,end)=0;
+    g(end,:)=0;
+    edges_mask = abs(g);
 
-    map=map+0.4*edge_kid;
+    r=sqrt(z_k.^2 + x_k.^2);
+    r=r/max(r(:));
+    edge_kid = imdilate(edges, strel('disk',1));
+    edge_mask = imdilate(edges_mask, strel('disk',1));
+    edge_kid2 = imdilate(edge_mask.*mask.*r, strel('disk',20));
+    edge_kid = edge_kid + 400*mask.*edge_kid2;
+
+    map=map+edge_kid;
 
     map=map';
 
