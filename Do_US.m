@@ -1,31 +1,35 @@
-% This program generates an US-image in 3 steps based on a 3D-model as
-% input (preferably in Nifti format) and correspondingly set parameters
+% This program generates a 2D US-image for a Transesophageal Echocardiography (TEE)
+% in 3 steps based on a 3D-phantom as input (preferably in Nifti format)
+% and correspondingly set parameters
 
 
 
 % STEP 1: Generating the scatterers' Coordinates and Amplitudes using
-%         the input-image as a map
+%         the input-phantom as a map
 
 
 %   Load the input data
 
-input_nifti = ['771083-timeseries/771083-TorsoMask_Rot',num2str(11),'.nii.gz']
+t = 2;      % Timepoint of the valve closure (1-30)
+rot = 7;    % Rotation angle of TEE (1-17)
+
+input_nifti = ['226950-timeseries/226950-TorsoMask_Rot',num2str(7),'.nii.gz']
 
 img.vol     = niftiread(input_nifti);   % Loading the data from the file
 
-%   Cut unnecessary dimensions, rotate and crop images if needed
+%   Cut unnecessary dimensions, crop and rotate images if needed
 
-img.vol     = img.vol(:, :, :, 1, 1);   % 5 dim to 3 dim image
-img.vol     = imrotate3(img.vol, -90, [0 0 1], 'nearest', 'crop');
-img.vol     = img.vol(211:600, 51:550, :);
+img.vol     = img.vol(:, :, :, 1, t);   % 5 dim to 3 dim image
+img.vol     = img.vol(81:535, 206:547, 12:28);
+img.vol     = imrotate(img.vol, -90);
 
 %   Set the image properties
 
-img.px_size = [size(img.vol,2) size(img.vol,1)]; % Image size in Pixels
-img.mm_size = [189.6 , 16.4 , 142.5];                  % Image size in mm
-img.n_sc    = 1e5/2;                            % Number of scatterers
+img.px_size = [size(img.vol,2) size(img.vol,1)];       % Image size in Pixels
+img.mm_size = [189.6 , 16.4 , 142.6];                  % Image size in mm
+img.n_sc    = 1e5/2;                                   % Number of scatterers
 
-%   Use the make_sc() function to generate coordinates and amplitudes
+%   Use the make_sc() function to generate coordinates and amplitudes for the scatters
 
 [phantom_positions, phantom_amplitudes] = make_sc(img);
 
@@ -80,11 +84,15 @@ params.image_width = 90/180*pi;                            %  Size of image sect
 params.dtheta      = params.image_width/params.no_lines;   %  Increment for image
 params.radius      = 0.8;                                    %  normalised US cone radius (1 for full radius)
 
-%   Choose Gaussian noise in the image and set the parameters for it
+%   Enable Gaussian noise in the image and set the parameters
 
 params.noise       = 1;                      %  Enable/ disable noise (1/0) 
 params.mu          = 7*1.15;
-params.sigma       = 6e-28;                  %  Noise increase with radius
+params.sigma       = 1e-27;                  %  Noise increase with radius
+
+%   Enable speckle reduction
+
+params.speckle     = 1;
 
 %   Use the interp_n_plot() to generate the image
 
