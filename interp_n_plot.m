@@ -104,7 +104,7 @@ img_frame = cat(2, img_frame, frame);
 % Speckle reduction filter
 
 if params.speckle == 1
-    img_frame = speckle(bild_mit_rand, [3 3], 2);
+    img_frame = speckle(img_frame, [3 3], 2);
 end
 
 iw(img_frame)
