@@ -62,7 +62,7 @@ for i=1:17
         end
     end
 
-    % Create mask for reflections
+    % Adjust mask
 
     mask=my_changem(mask, 0 , 74);
     mask=my_changem(mask, 0 , 75);
@@ -92,7 +92,7 @@ for i=1:17
     map=my_changem(map, 120 , 84);
     map=double(map);
 
-    % Gradients and Impedance in axial direction
+    % Two gradients in axial direction
 
     kernel=[-1 0 1;-2 0 2;-1 0 1]/4;
     Gx = conv2(map,kernel, 'same');
@@ -140,7 +140,7 @@ for i=1:17
     inside = (0 < xindex)  & (xindex <= Nl) & (0 < zindex)  & (zindex <= Ml) & (yindex==i);
     index = (xindex + (zindex-1)*Nl).*inside + 1*(1-inside);
 
-    % TEMP
+    % Set the amplitudes
     linear_index = zeros(img.n_sc, 1);
     for l = 1:img.n_sc
         linear_index(l) = sub2ind(size(map), xindex(l), zindex(l));
