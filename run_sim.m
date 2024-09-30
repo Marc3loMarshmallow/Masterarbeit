@@ -1,12 +1,15 @@
-%addpath('Field_II_ver_3_30_mac')
+% This function uses Field II to simulate the US-Data based on
+% given scatter Coordinates and Amplitudes with set Transducer
 
 function run_sim(trans, new_pht, new_dir)
 
-% Initialize the field system
+%  Initialize the Field II system
 
+% addpath('Field_II_ver_3_30_mac')  % Add Field II folder if needed
 field_init()
 
 %  Generate the transducer apertures for send and receive
+
 %  Set the sampling frequency
 
 set_sampling(trans.fs);
@@ -33,7 +36,7 @@ receive_aperture = xdc_linear_array (trans.N_el, trans.width, trans.el_h, trans.
 
 xdc_impulse (receive_aperture, impulse_response);
 
-%  Load the computer phantom and make a directory for the rf data
+%  Load the scatter data and make a directory for the rf data
 
 load(new_pht)
 mkdir(new_dir)
@@ -51,13 +54,13 @@ apo=hanning(trans.N_el)';
 xdc_apodization (xmit_aperture, 0, apo);
 xdc_apodization (receive_aperture, 0, apo);
 
-%   Do phased array imaging
+%  Do phased array imaging
 
 no_lines=64;                   %  Number of lines in image
 image_width=90/180*pi;         %  Size of image sector [rad]
 dtheta=image_width/no_lines;   %  Increment for image
 
-% Do imaging line by line
+%  Do imaging line by line
 
 for i=1:64
 
@@ -77,6 +80,7 @@ for i=1:64
     [rf_data, tstart]=calc_scat(xmit_aperture, receive_aperture, phantom_positions, phantom_amplitudes);
     
     %   Store the result
+    
     cmd=['save ', new_dir, 'rf_ln',num2str(i),'.mat rf_data tstart'];
     eval(cmd)
     end
