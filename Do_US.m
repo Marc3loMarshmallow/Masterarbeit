@@ -74,7 +74,7 @@ run_sim(trans, new_pht, new_dir);
 
 
 
-% STEP 3: Postprocessing - Adding Attenuation, Noise and Speckle reduction,
+% STEP 3: Postprocessing - Adding Attenuation, Noise and Speckle reduction
 %         (Putting together the US data to plot the desired 2D TEE image)
 
 
