@@ -4,31 +4,30 @@
 
 
 
-% STEP 1: Generating the scatterers' Coordinates and Amplitudes using
+% STEP 1: Preprocessing - Generating the scatter Coordinates and Amplitudes using
 %         the input-phantom as a map
 
 
 %   Load the input data
 
 t = 2;      % Timepoint of the valve closure (1-30)
-rot = 7;    % Rotation angle of TEE (1-17)
+rot = 7;    % Rotation angle of the TEE (1-17)
 
-input_nifti = ['226950-timeseries/226950-TorsoMask_Rot',num2str(7),'.nii.gz']
-% input_nifti = ['293182-timeseries/293182-TorsoMask_Rot',num2str(ind-1),'.nii.gz']
-% input_nifti = ['771083-timeseries-NoPM/771083-TorsoMask_Rot',num2str(ind-1),'.nii.gz']
-
+input_nifti = ['226950-timeseries/226950-TorsoMask_Rot',num2str(rot),'.nii.gz']
+% input_nifti = ['293182-timeseries/293182-TorsoMask_Rot',num2str(rot),'.nii.gz']
+% input_nifti = ['771083-timeseries-NoPM/771083-TorsoMask_Rot',num2str(rot),'.nii.gz']
 
 img.vol     = niftiread(input_nifti);   % Loading the data from the file
 
-%   Cut unnecessary dimensions, crop and rotate images if needed
+%   Cut unnecessary dimensions, crop and rotate phantoms if needed
 
-img.vol     = img.vol(:, :, :, 1, t);   % 5 dim to 3 dim image
-img.vol     = img.vol(81:535, 206:547, 12:28);
+img.vol     = img.vol(:, :, :, 1, t);             % 5 dim to 3 dim image
+img.vol     = img.vol(81:535, 206:547, 12:28);    % For valve 226950
 % img.vol     = img.vol(91:545, 206:547, 12:28);  % For valve 293182
 % img.vol     = img.vol(81:535, 206:547, 12:28);  % For valve 771083
 img.vol     = imrotate(img.vol, -90);
 
-%   Set the image properties
+%   Set the phantom properties
 
 img.px_size = [size(img.vol,2) size(img.vol,1)];       % Image size in Pixels
 img.mm_size = [189.6 , 16.4 , 142.6];                  % Image size in mm
@@ -46,10 +45,10 @@ save(new_pht, 'phantom_positions', 'phantom_amplitudes')
 
 
 
-% STEP 2: Simulating the US-data based on the previously set scatterers
+% STEP 2: Simulating the US-data with Field II based on the generated scatters
 
 
-%   Initialize the field system
+%   Initialize the Field II system
 
 field_init()
 
@@ -75,8 +74,8 @@ run_sim(trans, new_pht, new_dir);
 
 
 
-% STEP 3: Processing, interpolating and putting together the US data to
-%         plot the desired image with the set properties
+% STEP 3: Postprocessing, interpolating and putting together the US data to
+%         plot the desired 2D TEE image with the set properties
 
 
 %   Set the properties for the US image
