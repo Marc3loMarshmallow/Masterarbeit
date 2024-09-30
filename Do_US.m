@@ -45,7 +45,7 @@ save(new_pht, 'phantom_positions', 'phantom_amplitudes')
 
 
 
-% STEP 2: Simulating the US-data with Field II based on the generated scatters
+% STEP 2: Simulation - Simulating the US-data with Field II based on the generated scatters
 
 
 %   Initialize the Field II system
@@ -74,8 +74,8 @@ run_sim(trans, new_pht, new_dir);
 
 
 
-% STEP 3: Postprocessing, interpolating and putting together the US data to
-%         plot the desired 2D TEE image with the set properties
+% STEP 3: Postprocessing - Adding Attenuation, Noise and Speckle reduction,
+%         (Putting together the US data to plot the desired 2D TEE image)
 
 
 %   Set the properties for the US image
