@@ -86,7 +86,7 @@ params.c           = 1540;                                 %  Speed of sound [m/
 params.no_lines    = 64;                                   %  Number of lines in image
 params.image_width = 90/180*pi;                            %  Size of image sector [rad]
 params.dtheta      = params.image_width/params.no_lines;   %  Increment for image
-params.radius      = 0.8;                                    %  normalised US cone radius (1 for full radius)
+params.radius      = 0.8;                                  %  normalised US cone radius (1 for full radius)
 
 %   Enable Gaussian noise in the image and set the parameters
 
