@@ -1,4 +1,5 @@
-%  Make the image interpolation for the polar scan
+%  This function generates the 2D B-Mode from given US data
+%  and adds Attenuation, Noise and Speckle reduction if set
 
 function interp_n_plot(params, new_dir)
 
@@ -12,21 +13,22 @@ addpath(new_dir);
 min_sample=0;
 if params.noise == 1
     for i=1:params.no_lines
+        
         %  Load the result
 
         cmd=['load ', new_dir, 'rf_ln', num2str(i), '.mat']
-
         eval(cmd)
 
+        % Add Attenuation and Noise (exponential increasing noise)
+        
         res_rf = params.c / (2*params.fs);
-   
         d = res_rf*(1:length(rf_data));
         d(1)=d(2)/2;
         amplific = exp(params.mu*d);
         noise = params.sigma * randn(1,length(rf_data)) .* amplific;
         new_rf = rf_data + noise';
 
-        %  Find the envelope
+        %  Find the envelope (Hilbert transformation)
   
         rf_env=abs(hilbert([zeros(round(tstart*params.fs-min_sample),1); new_rf]));
 
@@ -42,7 +44,7 @@ else
 
         eval(cmd)
 
-        %  Find the envelope
+        %  Find the envelope (Hilbert transformation)
   
         rf_env=abs(hilbert([zeros(round(tstart*params.fs-min_sample),1); rf_data]));
 
@@ -82,6 +84,8 @@ env_disp=uint8(255*log_env(1:D:floor(params.radius*N),:)/max(max(log_env)));
 %env_disp=uint8(255*log_env(1:D:N,:)/max(max(log_env)));
 
 img_data=env_disp;
+
+% Do interpolation
 
 values.probe=28;
 values.sectorPercent = 100;       
