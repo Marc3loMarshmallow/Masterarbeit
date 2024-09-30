@@ -31,7 +31,7 @@ img.vol     = imrotate(img.vol, -90);
 
 img.px_size = [size(img.vol,2) size(img.vol,1)];       % Image size in Pixels
 img.mm_size = [189.6 , 16.4 , 142.6];                  % Image size in mm
-img.n_sc    = 1e5/2;                                   % Number of scatterers
+img.n_sc    = 1e5/2;                                   % Number of scatters
 
 %   Use the make_sc() function to generate coordinates and amplitudes for the scatters
 
