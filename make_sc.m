@@ -1,5 +1,5 @@
-% Creates a phantom for a Heart from a CT scan of the Heart.
-% The phantom starts 2 mm from the transducer surface.
+% This function generates scatter Coordinates and Amplitudes
+% for Field II based on a given phantom
 
 function [positions, amp] = make_sc(img)
 
@@ -15,17 +15,16 @@ z_size = img.mm_size(3) / 1000 ;
 dx=x_size/Nl;          %  Sampling interval in x direction [m]
 dz=z_size/Ml;          %  Sampling interval in z direction [m]
 dy=y_size/17;          %  Sampling interval in y direction [m]
-theta = 35/180*pi;     %   Rotation of the scatterers [rad]
+theta = 35/180*pi;     %  Rotation of the scatterers [rad]
 theta = 0;
-z_start = 2/1000;
+z_start = 2/1000;      %  Phantom starts 2 mm from the transducer surface
 
 % Calculate position data
-
-z0 = rand(img.n_sc,1);
 
 x0 = rand(img.n_sc,1);
 x = (x0-0.5)* x_size;
 
+z0 = rand(img.n_sc,1);
 z = z0*z_size+z_start;
 
 y0 = rand(img.n_sc,1);
@@ -45,10 +44,12 @@ amp = zeros(img.n_sc,1);
 % z0(1:3000) = z1(randomIndices);
 % y0(1:3000) = y1(randomIndices);
 
+% Set the tissue intensities of the phantom slice by slice
+
 for i=1:17
-    map = img.vol(:,:,i,:,:);
+    map = img.vol(:,:,i,:,:);       % Load phantom slice
     
-    mask = map;                     % create mask for reflections
+    mask = map;                     % Create mask for reflections
     mask=my_changem(mask, 1 , 0);
 
     % Set intensities outside the cone to 0
@@ -79,7 +80,7 @@ for i=1:17
     map=my_changem(map, 0 , 56);
     map=my_changem(map, 200 , 74);
     map=my_changem(map, 5 , 75);
-    map=my_changem(map, 210 , 107);     % set to 30 if scatters increased
+    map=my_changem(map, 210 , 107);     % set to 30 if scatters in valve increased
     map=my_changem(map, 100 , 61);
     map=my_changem(map, 120 , 73);
     map=my_changem(map, 100 , 65);
@@ -92,7 +93,7 @@ for i=1:17
     map=my_changem(map, 120 , 84);
     map=double(map);
 
-    % Two gradients in axial direction
+    % Determine the gradient
 
     kernel=[-1 0 1;-2 0 2;-1 0 1]/4;
     Gx = conv2(map,kernel, 'same');
@@ -100,17 +101,23 @@ for i=1:17
     x_g=1:size(map, 2);
     [z_k,x_k] = meshgrid(x_g-mean(x_g), 1:size(map, 1));
 
+    % Project in axial direction with polar coordinates
+
     gtheta = cart2pol(z_k,x_k);
 
     unit_z=sin(gtheta);
     unit_x=cos(gtheta);
 
+    % First the general reflections
+    
     g=unit_x.*Gx+unit_z.*Gz;
     g(:,1)=0;
     g(1,:)=0;
     g(:,end)=0;
     g(end,:)=0;
     edges=abs(g);
+
+    % Additional reflections outside the myocardium
 
     Gx = conv2(mask,kernel, 'same');
     Gz = conv2(mask,kernel', 'same');
@@ -123,13 +130,17 @@ for i=1:17
 
     r=sqrt(z_k.^2 + x_k.^2);
     r=r/max(r(:));
+
+    % Set reflection intensities and width
+    
     edge_kid = imdilate(edges, strel('disk',1));
     edge_mask = imdilate(edges_mask, strel('disk',1));
-    edge_kid2 = imdilate(edge_mask.*mask.*r, strel('disk',20));
+    edge_kid2 = imdilate(edge_mask.*mask.*r, strel('disk',20));    
     edge_kid = edge_kid + 400*mask.*edge_kid2;
 
+    % Add reflections to map
+    
     map=map+edge_kid;
-
     map=map';
 
     %  Find the index for the amplitude value
@@ -141,6 +152,7 @@ for i=1:17
     index = (xindex + (zindex-1)*Nl).*inside + 1*(1-inside);
 
     % Set the amplitudes
+    
     linear_index = zeros(img.n_sc, 1);
     for l = 1:img.n_sc
         linear_index(l) = sub2ind(size(map), xindex(l), zindex(l));
@@ -150,8 +162,7 @@ for i=1:17
     amp_sl(amp_sl~=0) = exp(amp_sl(amp_sl~=0)/100);
 
     % Amplitudes with different variance must be generated according to the 
-    % input map.
-    % The amplitude of the map is used to scale the variance
+    % input map. The amplitude of the map is used to scale the variance.
 
     amp_sl=amp_sl-min(min(amp_sl));
     amp_sl=amp_sl/max(max(amp_sl));
@@ -168,7 +179,7 @@ znew=znew-min(min(znew)) + z_start;
 
 positions=[(xnew-40/1000) y znew];
 
-% remove scatters wie amplitude zero for runtime purposes
+% Remove scatters with amplitude zero for runtime purpose
 
 xnew(amp==0)=[];
 y(amp==0)=[];
